@@ -17,14 +17,16 @@ DASHBOARD_HTML = """
         }
         h1 { font-size: 1.2rem; letter-spacing: 12px; margin: 25px 0; color: var(--p); text-shadow: 0 0 20px rgba(0,236,255,0.4); }
         
-        /* 顶部设置栏 */
-        .settings-bar { display: flex; gap: 10px; margin-bottom: 25px; width: 100%; max-width: 600px; }
+        .settings-bar { display: flex; gap: 8px; margin-bottom: 25px; width: 100%; max-width: 600px; flex-wrap: wrap; }
         .btn-set { 
-            flex: 1; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.03); color: #fff; font-size: 0.75rem; 
-            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+            flex: 1; padding: 12px 5px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03); color: #fff; font-size: 0.7rem; 
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px; min-width: 100px;
         }
         .btn-set.active { background: var(--p); color: #000; border-color: var(--p); font-weight: bold; }
+        
+        /* 重载按钮样式 */
+        .btn-reload { background: #ffab00 !important; color: #000 !important; border-color: #ffab00 !important; font-weight: 800; }
 
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; max-width: 600px; }
         .card { 
@@ -34,7 +36,7 @@ DASHBOARD_HTML = """
         .card:active { background: var(--p); color: #000; transform: scale(0.95); }
         .label { font-size: 0.85rem; font-weight: 800; color: var(--p); }
         .card:active .label { color: #000; }
-        .hint { font-size: 0.55rem; opacity: 0.15; margin-top: 5px; }
+        .hint { font-size: 0.5rem; opacity: 0.15; margin-top: 5px; }
         
         .api-info {
             margin-top: 40px; width: 100%; max-width: 500px; padding: 20px;
@@ -48,8 +50,11 @@ DASHBOARD_HTML = """
     <h1>JARVIS CORE</h1>
     
     <div class="settings-bar">
+        <!-- 新增重载按钮 -->
+        <button class="btn-set btn-reload" onclick="doReload()">🔄 重载配置</button>
+        
         <button class="btn-set {% if voice_on %}active{% endif %}" onclick="send('切换语音')">
-            {{ '🔊 语音开启' if voice_on else '🔇 语音关闭' }}
+            {{ '🔊 语音:开' if voice_on else '🔇 语音:关' }}
         </button>
         <button class="btn-set active" onclick="send('切换引擎')">
             {{ '🚀 极速本地' if engine_name == 'local' else '🎙️ 云端真人' }}
@@ -68,7 +73,6 @@ DASHBOARD_HTML = """
     </div>
 
     <div class="api-info">
-        <b>📱 远程 POST 接口:</b><br>
         URL: <code>http://{{ local_ip }}:{{ port }}/command</code><br>
         BODY: <code>{"text": "参数内容"}</code>
     </div>
@@ -80,9 +84,15 @@ DASHBOARD_HTML = """
                 headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify({ text: t }) 
             }).then(() => {
-                if (t === '切换语音' || t === '切换引擎') {
+                if (t.includes('切换')) {
                     setTimeout(() => location.reload(), 300);
                 }
+            });
+        }
+        
+        function doReload() {
+            fetch('/reload', { method: 'POST' }).then(() => {
+                setTimeout(() => location.reload(), 300);
             });
         }
     </script>

@@ -9,6 +9,7 @@ import edge_tts
 import pygame
 import pyttsx3
 import pythoncom
+import importlib # 用于热重载
 from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
 from actions import Actions
@@ -19,7 +20,7 @@ app = Flask(__name__)
 CORS(app)
 actions_worker = Actions()
 
-# --- 极速/真人双模 TTS 引擎 ---
+# --- TTS 播报器 (V7.2) ---
 class Speaker:
     def __init__(self):
         self.msg_queue = queue.Queue()
@@ -27,23 +28,23 @@ class Speaker:
         threading.Thread(target=self._speech_worker, daemon=True).start()
 
     def _speech_worker(self):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
         while True:
             text = self.msg_queue.get()
-            if not text: 
-                self.msg_queue.task_done()
-                continue
-                
-            if not config.VOICE_ENABLED:
-                self.msg_queue.task_done()
-                continue
+            if not text or not config.VOICE_ENABLED:
+                self.msg_queue.task_done(); continue
+            
+            # 说话前音量检查
+            try:
+                cv = actions_worker.vm.get_volume()
+                low = False
+                if cv < 15: low = True; actions_worker.vm.set_volume(30)
+            except: pass
 
             try:
                 if config.VOICE_ENGINE == "edge":
-                    # --- 真人云端引擎 ---
-                    temp_file = "temp_voice.mp3"
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    temp_file = f"voice_{int(time.time())}.mp3"
                     communicate = edge_tts.Communicate(text, config.EDGE_VOICE, rate=config.EDGE_RATE)
                     loop.run_until_complete(communicate.save(temp_file))
                     pygame.mixer.music.load(temp_file)
@@ -51,20 +52,24 @@ class Speaker:
                     while pygame.mixer.music.get_busy(): time.sleep(0.05)
                     pygame.mixer.music.unload()
                     if os.path.exists(temp_file): os.remove(temp_file)
+                    loop.close()
                 else:
-                    # --- 极速本地引擎 ---
                     pythoncom.CoInitialize()
-                    engine = pyttsx3.init()
-                    engine.setProperty('rate', config.LOCAL_RATE)
-                    # 寻找中文语音
-                    voices = engine.getProperty('voices')
-                    for v in voices:
+                    le = pyttsx3.init()
+                    le.setProperty('rate', config.LOCAL_RATE)
+                    vs = le.getProperty('voices')
+                    for v in vs:
                         if "zh" in v.id.lower() or "chinese" in v.name.lower():
-                            engine.setProperty('voice', v.id); break
-                    engine.say(text)
-                    engine.runAndWait()
+                            le.setProperty('voice', v.id); break
+                    le.say(text)
+                    le.runAndWait()
+                    del le
                     pythoncom.CoUninitialize()
-            except Exception as e: print(f"Speaker Error: {e}")
+            except Exception as e: print(f"Speech Error: {e}")
+            
+            if low: 
+                try: actions_worker.vm.set_volume(cv)
+                except: pass
             self.msg_queue.task_done()
 
     def speak(self, text):
@@ -78,14 +83,19 @@ def index():
     try: s.connect(('8.8.8.8', 80)); ip = s.getsockname()[0]
     except: ip = '127.0.0.1'
     finally: s.close()
-    
-    # 传入当前的语音配置，让 UI 能显示状态
-    return render_template_string(DASHBOARD_HTML, 
-                                 commands=config.COMMANDS, 
-                                 port=config.API_PORT, 
-                                 local_ip=ip,
-                                 voice_on=config.VOICE_ENABLED,
-                                 engine_name=config.VOICE_ENGINE)
+    return render_template_string(DASHBOARD_HTML, commands=config.COMMANDS, 
+                                 port=config.API_PORT, local_ip=ip,
+                                 voice_on=config.VOICE_ENABLED, engine_name=config.VOICE_ENGINE)
+
+# --- 新增：热重载接口 ---
+@app.route('/reload', methods=['POST'])
+def reload_config():
+    try:
+        importlib.reload(config)
+        speaker.speak("配置已成功重载")
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "msg": str(e)}), 500
 
 @app.route('/command', methods=['POST'])
 def handle_command():
@@ -93,28 +103,30 @@ def handle_command():
     text = data.get("text", "")
     if not text: return jsonify({"status": "error"}), 400
     
-    # --- 内部特殊逻辑：切换设置 ---
+    # 异步执行动作和语音
+    threading.Thread(target=execution_task, args=(text,)).start()
+    return jsonify({"status": "success"})
+
+def execution_task(text):
+    # 配置切换逻辑
     if text == "切换语音":
         config.VOICE_ENABLED = not config.VOICE_ENABLED
-        speaker.speak("静音开启" if not config.VOICE_ENABLED else "语音开启")
-        return jsonify({"status": "success", "voice_on": config.VOICE_ENABLED})
-    
+        speaker.speak("语音开启" if config.VOICE_ENABLED else "静音模式")
+        return
     if text == "切换引擎":
         config.VOICE_ENGINE = "edge" if config.VOICE_ENGINE == "local" else "local"
-        speaker.speak(f"已切换到{'云端' if config.VOICE_ENGINE == 'edge' else '本地'}引擎")
-        return jsonify({"status": "success", "engine": config.VOICE_ENGINE})
+        speaker.speak("引擎切换成功")
+        return
 
-    # --- 常规指令分发 ---
-    matched = False
+    # 指令匹配
     for cmd_id, info in config.COMMANDS.items():
         if any(kw == text for kw in info['post_params']):
             func = getattr(actions_worker, info['action'], None)
-            if func: func(*info['params'])
+            if func:
+                try: func(*info['params'])
+                except Exception as e: print(f"Action Exec Error: {e}")
             speaker.speak(info['reply'])
-            matched = True
-            break
-            
-    return jsonify({"status": "success"})
+            return
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=config.API_PORT)
