@@ -1,76 +1,76 @@
 # --- 贾维斯核心：全动态 UI 模板库 ---
 
-# 这里只负责美化界面，不涉及后端逻辑
 DASHBOARD_HTML = """
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JARVIS COMMANDER</title>
+    <title>JARVIS CONTROL</title>
     <style>
-        :root {
-            --p: #00ecff; 
-            --bg: #09090b;
-            --card: rgba(255, 255, 255, 0.04);
-            --text: #e2e2e7;
-        }
-        * { 
-            touch-action: manipulation; 
-            -webkit-user-select: none; 
-            box-sizing: border-box; 
-            transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        :root { --p: #00ecff; --bg: #08080a; --c: rgba(255,255,255,0.05); }
+        * { touch-action: manipulation; -webkit-user-select: none; box-sizing: border-box; }
         body { 
-            background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif;
-            display: flex; flex-direction: column; align-items: center; padding: 30px 15px; margin: 0;
-            background-image: radial-gradient(circle at 50% 10%, #1a1a35 0%, #09090b 60%);
-            min-height: 100vh;
+            background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center; padding: 20px 10px; margin: 0;
+            background-image: radial-gradient(circle at 50% 5%, #151525 0%, #08080a 70%);
         }
-        h1 { font-size: 1.6rem; font-weight: 200; letter-spacing: 12px; margin: 20px 0 40px 0; color: var(--p); text-shadow: 0 0 30px rgba(0,236,255,0.4); text-transform: uppercase; }
-        .grid { 
-            display: grid; grid-template-columns: repeat(2, 1fr); 
-            gap: 12px; width: 100%; max-width: 600px; 
-        }
-        .card { 
-            background: var(--card); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; 
-            padding: 22px 10px; text-align: center; cursor: pointer; backdrop-filter: blur(20px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-        .card:hover { border-color: var(--p); transform: translateY(-3px); }
-        .card:active { background: var(--p); transform: scale(0.95); }
-        .card:active .label { color: #000; }
-        .label { font-size: 0.85rem; font-weight: 800; color: var(--p); text-shadow: 0 0 10px rgba(0,236,255,0.2); }
-        .hint { font-size: 0.55rem; opacity: 0.2; margin-top: 6px; font-weight: 300; letter-spacing: 1px; }
+        h1 { font-size: 1.2rem; letter-spacing: 12px; margin: 25px 0; color: var(--p); text-shadow: 0 0 20px rgba(0,236,255,0.4); }
         
-        .guide-box {
-            margin-top: 50px; width: 100%; max-width: 500px;
-            background: rgba(0,0,0,0.5); border-radius: 12px; padding: 25px;
-            border: 1px solid rgba(255,255,255,0.05);
+        /* 顶部设置栏 */
+        .settings-bar { display: flex; gap: 10px; margin-bottom: 25px; width: 100%; max-width: 600px; }
+        .btn-set { 
+            flex: 1; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03); color: #fff; font-size: 0.75rem; 
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
         }
-        .guide-box h3 { color: var(--p); margin-top: 0; font-weight: 400; font-size: 0.9rem; letter-spacing: 2px; }
-        .guide-box p { font-size: 0.75rem; color: #888; line-height: 1.8; margin-bottom: 0; }
-        code { background: #111; padding: 2px 6px; border-radius: 4px; color: #ffa500; font-family: monospace; border: 1px solid #333; }
+        .btn-set.active { background: var(--p); color: #000; border-color: var(--p); font-weight: bold; }
+
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; max-width: 600px; }
+        .card { 
+            background: var(--c); border: 1px solid rgba(255,255,255,0.05); border-radius: 15px; 
+            padding: 22px 10px; text-align: center; transition: 0.1s;
+        }
+        .card:active { background: var(--p); color: #000; transform: scale(0.95); }
+        .label { font-size: 0.85rem; font-weight: 800; color: var(--p); }
+        .card:active .label { color: #000; }
+        .hint { font-size: 0.55rem; opacity: 0.15; margin-top: 5px; }
+        
+        .api-info {
+            margin-top: 40px; width: 100%; max-width: 500px; padding: 20px;
+            background: rgba(0,0,0,0.5); border-top: 1px solid #222; border-radius: 15px;
+            font-size: 0.7rem; color: #666; line-height: 1.6;
+        }
+        code { color: var(--p); font-family: monospace; }
     </style>
 </head>
 <body>
     <h1>JARVIS CORE</h1>
+    
+    <div class="settings-bar">
+        <button class="btn-set {% if voice_on %}active{% endif %}" onclick="send('切换语音')">
+            {{ '🔊 语音开启' if voice_on else '🔇 语音关闭' }}
+        </button>
+        <button class="btn-set active" onclick="send('切换引擎')">
+            {{ '🚀 极速本地' if engine_name == 'local' else '🎙️ 云端真人' }}
+        </button>
+    </div>
+
     <div class="grid">
         {% for cmd_id, item in commands.items() %}
+        {% if item.action != 'none' %}
         <div class="card" onclick="send('{{ item.post_params[0] }}')">
             <div class="label">{{ item.label }}</div>
-            <div class="hint">POST TEXT: {{ item.post_params[0] }}</div>
+            <div class="hint">TEXT: {{ item.post_params[0] }}</div>
         </div>
+        {% endif %}
         {% endfor %}
     </div>
-    
-    <div class="guide-box">
-        <h3>📱 远程指令枢纽</h3>
-        <p>
-            方法: <code>POST</code><br>
-            接口: <code>http://{{ local_ip }}:{{ port }}/command</code><br>
-            载荷: <code>{"text": "参数内容"}</code>
-        </p>
+
+    <div class="api-info">
+        <b>📱 远程 POST 接口:</b><br>
+        URL: <code>http://{{ local_ip }}:{{ port }}/command</code><br>
+        BODY: <code>{"text": "参数内容"}</code>
     </div>
 
     <script>
@@ -79,6 +79,10 @@ DASHBOARD_HTML = """
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify({ text: t }) 
+            }).then(() => {
+                if (t === '切换语音' || t === '切换引擎') {
+                    setTimeout(() => location.reload(), 300);
+                }
             });
         }
     </script>
