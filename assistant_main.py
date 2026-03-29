@@ -43,9 +43,14 @@ def setup_tray():
     def on_open_web(icon, item):
         # 自动获取本机 IP 或直接访问 localhost
         webbrowser.open(f"http://127.0.0.1:{config.API_PORT}")
+        
+    def on_open_folder(icon, item):
+        # 打开项目根目录
+        os.startfile(os.path.dirname(os.path.abspath(__file__)))
 
     icon = pystray.Icon("JARVIS", create_image(), menu=pystray.Menu(
         pystray.MenuItem("🖥️ 仪表盘 (Dashboard)", on_open_web),
+        pystray.MenuItem("📁 项目文件夹", on_open_folder),
         pystray.MenuItem("🔄 重载配置", on_reload),
         pystray.MenuItem("❌ 退出 JARVIS", on_quit)
     ))
