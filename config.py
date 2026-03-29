@@ -35,16 +35,21 @@ COMMANDS = {
         "params": [],
         "reply": "引擎已切换",
     },
-    
     # 2. 安全与防御协议
-    "wipe_data": { 
-        "label": "💀 毁灭证据", 
-        "post_params": ["销毁", "毁灭"], 
-        "action": "wipe_evidence", 
-        "params": ["C:\\Users\\kasus\\Downloads\\证据"], 
-        "reply": "遵命，所有痕迹已抹除" 
+    "wipe_data": {
+        "label": "毁灭证据",
+        "post_params": ["销毁", "毁灭"],
+        "action": "wipe_evidence",
+        "params": ["C:\\Users\\kasus\\Downloads\\证据"],
+        "reply": "遵命，所有痕迹已抹除",
     },
-
+    "abort_shutdown": {
+        "label": "取消关机",
+        "post_params": ["取消关机", "别关机"],
+        "action": "run_cmd",
+        "params": ["shutdown -a"],
+        "reply": "遵命，已中止关机流程",
+    },
     # 3. 音量控制阵列
     "vol_0": {
         "label": "静音",
@@ -67,7 +72,6 @@ COMMANDS = {
         "params": [100],
         "reply": "音量拉满",
     },
-
     # 4. 效率与媒体控制
     "play_toggle": {
         "label": "播放/暂停",
@@ -104,6 +108,13 @@ COMMANDS = {
         "params": ["chrome"],
         "reply": "打开chrome",
     },
+    "taskmgr_test": {
+        "label": "测试-任务管理器",
+        "post_params": ["测试任务管理器", "调试"],
+        "action": "run_cmd",
+        "params": ["taskmgr"],
+        "reply": "正在测试通用命令执行：打开任务管理器",
+    },
     "taskmgr": {
         "label": "任务管理器",
         "post_params": ["任务管理"],
@@ -111,7 +122,6 @@ COMMANDS = {
         "params": ["taskmgr"],
         "reply": "启动管理",
     },
-
     # 5. 屏幕环境
     "bright_min": {
         "label": "深夜亮度",
@@ -127,7 +137,6 @@ COMMANDS = {
         "params": [100],
         "reply": "亮起",
     },
-
     # 6. 快捷链接
     "github": {
         "label": "GITHUB",
@@ -136,7 +145,6 @@ COMMANDS = {
         "params": ["https://github.com"],
         "reply": "打开代码库",
     },
-
     # 7. 系统终结
     "lock": {
         "label": "锁屏",
@@ -147,9 +155,9 @@ COMMANDS = {
     },
     "shutdown": {
         "label": "极速关机",
-        "post_params": ["关机"],
-        "action": "shutdown",
-        "params": [],
-        "reply": "系统即将自毁",
+        "post_params": ["关机", "自毁"],
+        "action": "run_cmd",
+        "params": ['shutdown -s -t 60 -c "JARVIS: 系统即将关闭，倒计时60秒"'],
+        "reply": "系统即将关闭，倒计时60秒",
     },
 }

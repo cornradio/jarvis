@@ -90,9 +90,17 @@ def index():
 # --- 新增：热重载接口 ---
 @app.route('/reload', methods=['POST'])
 def reload_config():
+    global config, actions_worker
     try:
+        # 重载配置
         importlib.reload(config)
-        speaker.speak("配置已成功重载")
+        # 重载动作模块
+        import actions
+        importlib.reload(actions)
+        from actions import Actions
+        actions_worker = Actions() # 更新实例
+        
+        speaker.speak("核心逻辑与配置已成功重载")
         return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"status": "error", "msg": str(e)}), 500
@@ -121,11 +129,13 @@ def execution_task(text):
     # 指令匹配
     for cmd_id, info in config.COMMANDS.items():
         if any(kw == text for kw in info['post_params']):
+            # 先说话再执行
+            speaker.speak(info['reply'])
+            
             func = getattr(actions_worker, info['action'], None)
             if func:
                 try: func(*info['params'])
                 except Exception as e: print(f"Action Exec Error: {e}")
-            speaker.speak(info['reply'])
             return
 
 if __name__ == "__main__":

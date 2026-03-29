@@ -61,6 +61,6 @@ class Actions:
         ctypes.windll.user32.LockWorkStation()
         return True
 
-    def shutdown(self):
-        os.system("shutdown -s -t 60")
+    def run_cmd(self, cmd):
+        os.system(cmd)
         return True
