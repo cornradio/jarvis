@@ -15,6 +15,44 @@ from flask_cors import CORS
 from actions import Actions
 import config
 from web_ui import DASHBOARD_HTML
+import pystray
+from PIL import Image, ImageDraw
+
+import webbrowser
+
+# --- 系统托盘系统 (V1.0) ---
+def setup_tray():
+    def create_image():
+        # 生成一个深蓝色带光泽的圆圈作为图标
+        width = 64; height = 64
+        image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+        dc = ImageDraw.Draw(image)
+        dc.ellipse([8, 8, 56, 56], fill=(0, 150, 255)) # 贾维斯蓝
+        dc.ellipse([16, 16, 48, 48], outline=(255, 255, 255), width=2)
+        return image
+
+    def on_quit(icon, item):
+        icon.stop()
+        os._exit(0) # 强制关闭所有关联线程并退出
+
+    def on_reload(icon, item):
+        # 模拟点击重载
+        with app.test_client() as c:
+            c.post('/reload')
+            
+    def on_open_web(icon, item):
+        # 自动获取本机 IP 或直接访问 localhost
+        webbrowser.open(f"http://127.0.0.1:{config.API_PORT}")
+
+    icon = pystray.Icon("JARVIS", create_image(), menu=pystray.Menu(
+        pystray.MenuItem("🖥️ 仪表盘 (Dashboard)", on_open_web),
+        pystray.MenuItem("🔄 重载配置", on_reload),
+        pystray.MenuItem("❌ 退出 JARVIS", on_quit)
+    ))
+    icon.run()
+
+# 启动托盘线程
+threading.Thread(target=setup_tray, daemon=True).start()
 
 app = Flask(__name__)
 CORS(app)

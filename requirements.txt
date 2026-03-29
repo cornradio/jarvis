@@ -8,3 +8,5 @@ pyautogui
 screen-brightness-control
 comtypes
 pycaw
+pystray
+Pillow
