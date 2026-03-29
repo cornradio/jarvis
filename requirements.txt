@@ -1,0 +1,10 @@
+flask
+flask-cors
+edge-tts
+pygame
+pyttsx3
+pywin32
+pyautogui
+screen-brightness-control
+comtypes
+pycaw

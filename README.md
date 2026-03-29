@@ -7,7 +7,7 @@
 
 ---
 
-## 📱 终极玩法：iOS 快捷指令 + Siri 联动 (重点)
+## 📱 玩法：iOS 快捷指令 + Siri 联动
 
 本系统的核心价值在于 **“零接触操纵”**。你可以通过 iOS 的“快捷指令” App，通过 `获取 URL 内容 (POST)` 的方式，实现 **“嘿 Siri，销毁证据”** 或 **“嘿 Siri，静音模式”**。
 
@@ -21,6 +21,7 @@
 4. **命名指令**: 比如叫“锁定电脑”。
 5. **语音控制**: 对着 iPhone 喊：**“嘿 Siri，锁定电脑”**，你的 PC 就会瞬间响应并回复真人语音。
 
+![1774755492979](image/README/1774755492979.jpg)
 ---
 
 ## 🎨 系统仪表盘 (网页版)
@@ -38,7 +39,6 @@
 
 - **🚀 异步多线程**: 指令执行与语音播报完全解耦，按钮响应快如闪电。
 - **🎙️ 二代真人语音**: 基于微软 Edge-TTS (Yunxi/Xiaoxiao)，提供电影级的原声回馈。
-- **💀 防御协议**: 永久抹除指定文件夹，秒级清除垃圾，Alt+F4 强制关闭窗口。
 - **⚙️ 全开放架构**: 只要懂一点 Python，就能在 `actions.py` 里添加任何系统级操作。
 
 ---
@@ -48,7 +48,7 @@
 1. **环境准备**: Python 3.10+
 2. **安装核心库**:
 ```powershell
-pip install flask flask-cors pyttsx3 pygame edge-tts screen-brightness-control pyautogui pywin32
+pip install -r requirements.txt
 ```
 3. **点火启动**:
 ```powershell
@@ -57,13 +57,5 @@ python assistant_main.py
 
 ---
 
-## ⚙️ 进阶配置指南
 
-针对 **Power User** (专业用户) 的结构：
-- **`config.py`**: 指令注册表。定义 `label` (网页名)、`post_params` (API 触发词)、`action` (执行函数) 及语音回复。
-- **`actions.py`**: 技能逻辑。在这里用 Python 编写具体的电脑行为（文件操作、进程管理、键盘模拟等）。
-- **`web_ui.py`**: 视觉模板。不影响逻辑的前提下，随意修改网页 UI 风格。
-
----
-
-*Jarvis v7.6 - Designed for absolute control.*
+*Jarvis v7.6*

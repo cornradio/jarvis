@@ -74,6 +74,7 @@ DASHBOARD_HTML = """
 
     <div class="api-info">
         URL: <code>http://{{ local_ip }}:{{ port }}/command</code><br>
+        注意，这个 ip 地址不一定对你需要自己去设置里面找一下局域网 ip 地址。<br>
         BODY: <code>{"text": "参数内容"}</code>
     </div>
 
