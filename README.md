@@ -57,5 +57,22 @@ python assistant_main.py
 
 ---
 
+## ⚙️ 进阶配置
 
-*Jarvis v7.6*
+### 1. 系统托盘与后台管理
+程序启动后，右下角任务栏会出现 **蓝色圆圈图标**：
+*   **右键菜单**: 可快速打开仪表盘、重载配置或退出程序。
+*   **静默运行**: 即使没有命令行窗口，你依然可以通过托盘图标完全掌控 JARVIS。
+
+### 2. 设置开机自启 (极致隐藏模式)
+如果你希望每次 Windows 启动时 JARVIS 自动在后台运行（且不弹黑窗口）：
+1. 确保已经通过 `pip install -r requirements.txt` 安装了所有依赖。
+2. 在项目根目录运行：
+   ```powershell
+   python setup_autostart.py
+   ```
+3. **取消自启**: 按下 `Win + R` 键，输入 `shell:startup`，删掉里面的 `JARVIS_AutoStart.vbs` 即可。
+
+---
+
+*Jarvis v7.6 - Designed for absolute control.*
