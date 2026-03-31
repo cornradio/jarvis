@@ -1,7 +1,0 @@
-192.168.31.136 - - [31/Mar/2026 21:50:53] "POST /command HTTP/1.1" 200 -
-192.168.31.136 - - [31/Mar/2026 21:51:36] "POST /command HTTP/1.1" 200 -
-127.0.0.1 - - [31/Mar/2026 21:52:21] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [31/Mar/2026 21:52:21] "GET /static/script.js HTTP/1.1" 304 -
-127.0.0.1 - - [31/Mar/2026 21:52:21] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
-127.0.0.1 - - [31/Mar/2026 21:52:22] "POST /command HTTP/1.1" 200 -
-PS C:\Users\kasus\Documents\GitHub\jarvis> python .\assistant_main.py

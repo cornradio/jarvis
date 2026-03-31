@@ -9,7 +9,7 @@ import edge_tts
 import pygame
 import pyttsx3
 import pythoncom
-import importlib # 用于热重载
+import importlib  # 用于热重载
 from flask import Flask, request, jsonify, render_template_string, send_file
 from flask_cors import CORS
 from actions import Actions
@@ -20,49 +20,50 @@ from PIL import Image, ImageDraw
 
 import webbrowser
 
+
 # --- 系统托盘系统 (V1.0) ---
 def setup_tray():
     def create_image():
         # 生成一个深蓝色带光泽的圆圈作为图标
-        width = 64; height = 64
-        image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+        width = 64
+        height = 64
+        image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         dc = ImageDraw.Draw(image)
-        dc.ellipse([8, 8, 56, 56], fill=(0, 150, 255)) # 贾维斯蓝
+        dc.ellipse([8, 8, 56, 56], fill=(0, 150, 255))  # 贾维斯蓝
         dc.ellipse([16, 16, 48, 48], outline=(255, 255, 255), width=2)
         return image
 
     def on_quit(icon, item):
         icon.stop()
-        os._exit(0) # 强制关闭所有关联线程并退出
+        os._exit(0)  # 强制关闭所有关联线程并退出
 
-    def on_restart(icon, item):
-        # 强制重启程序 (热重载整个实例)
-        icon.stop()
-        # 使用当前解释器重新运行当前脚本
-        os.execl(sys.executable, sys.executable, *sys.argv)
-            
     def on_open_web(icon, item):
         # 自动获取本机 IP 或直接访问 localhost
         webbrowser.open(f"http://127.0.0.1:{config.API_PORT}")
-        
+
     def on_open_folder(icon, item):
         # 打开项目根目录
         os.startfile(os.path.dirname(os.path.abspath(__file__)))
 
-    icon = pystray.Icon("JARVIS", create_image(), menu=pystray.Menu(
-        pystray.MenuItem("🖥️ 仪表盘 (Dashboard)", on_open_web),
-        pystray.MenuItem("📁 项目文件夹", on_open_folder),
-        pystray.MenuItem("🔥 强制重启 (Force Restart)", on_restart),
-        pystray.MenuItem("❌ 退出 JARVIS", on_quit)
-    ))
+    icon = pystray.Icon(
+        "JARVIS",
+        create_image(),
+        menu=pystray.Menu(
+            pystray.MenuItem("🖥️ 仪表盘", on_open_web),
+            pystray.MenuItem("📁 项目文件夹", on_open_folder),
+            pystray.MenuItem("❌ 退出", on_quit),
+        ),
+    )
     icon.run()
+
 
 # 启动托盘线程
 threading.Thread(target=setup_tray, daemon=True).start()
 
-app = Flask(__name__, static_folder='core/static')
+app = Flask(__name__, static_folder="core/static")
 CORS(app)
 actions_worker = Actions()
+
 
 # --- TTS 播报器 (V7.2) ---
 class Speaker:
@@ -75,64 +76,88 @@ class Speaker:
         while True:
             text = self.msg_queue.get()
             if not text or not config.VOICE_ENABLED:
-                self.msg_queue.task_done(); continue
-            
+                self.msg_queue.task_done()
+                continue
+
             # 说话前音量检查
             try:
                 cv = actions_worker.vm.get_volume()
                 low = False
-                if cv < 15: low = True; actions_worker.vm.set_volume(30)
-            except: pass
+                if cv < 15:
+                    low = True
+                    actions_worker.vm.set_volume(30)
+            except:
+                pass
 
             try:
                 if config.VOICE_ENGINE == "edge":
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
                     temp_file = f"voice_{int(time.time())}.mp3"
-                    communicate = edge_tts.Communicate(text, config.EDGE_VOICE, rate=config.EDGE_RATE)
+                    communicate = edge_tts.Communicate(
+                        text, config.EDGE_VOICE, rate=config.EDGE_RATE
+                    )
                     loop.run_until_complete(communicate.save(temp_file))
                     pygame.mixer.music.load(temp_file)
                     pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy(): time.sleep(0.05)
+                    while pygame.mixer.music.get_busy():
+                        time.sleep(0.05)
                     pygame.mixer.music.unload()
-                    if os.path.exists(temp_file): os.remove(temp_file)
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
                     loop.close()
                 else:
                     pythoncom.CoInitialize()
                     le = pyttsx3.init()
-                    le.setProperty('rate', config.LOCAL_RATE)
-                    vs = le.getProperty('voices')
+                    le.setProperty("rate", config.LOCAL_RATE)
+                    vs = le.getProperty("voices")
                     for v in vs:
                         if "zh" in v.id.lower() or "chinese" in v.name.lower():
-                            le.setProperty('voice', v.id); break
+                            le.setProperty("voice", v.id)
+                            break
                     le.say(text)
                     le.runAndWait()
                     del le
                     pythoncom.CoUninitialize()
-            except Exception as e: print(f"Speech Error: {e}")
-            
-            if low: 
-                try: actions_worker.vm.set_volume(cv)
-                except: pass
+            except Exception as e:
+                print(f"Speech Error: {e}")
+
+            if low:
+                try:
+                    actions_worker.vm.set_volume(cv)
+                except:
+                    pass
             self.msg_queue.task_done()
 
     def speak(self, text):
         self.msg_queue.put(text)
 
+
 speaker = Speaker()
 
-@app.route('/')
+
+@app.route("/")
 def index():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try: s.connect(('8.8.8.8', 80)); ip = s.getsockname()[0]
-    except: ip = '127.0.0.1'
-    finally: s.close()
-    return render_template_string(DASHBOARD_HTML, commands=config.COMMANDS, 
-                                 port=config.API_PORT, local_ip=ip,
-                                 voice_on=config.VOICE_ENABLED, engine_name=config.VOICE_ENGINE)
+    try:
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+    except:
+        ip = "127.0.0.1"
+    finally:
+        s.close()
+    return render_template_string(
+        DASHBOARD_HTML,
+        commands=config.COMMANDS,
+        port=config.API_PORT,
+        local_ip=ip,
+        voice_on=config.VOICE_ENABLED,
+        engine_name=config.VOICE_ENGINE,
+    )
+
 
 # --- 新增：热重载接口 ---
-@app.route('/reload', methods=['POST'])
+@app.route("/reload", methods=["POST"])
 def reload_config():
     global config, actions_worker
     try:
@@ -140,50 +165,82 @@ def reload_config():
         importlib.reload(config)
         # 重载动作模块
         import actions
+
         importlib.reload(actions)
         from actions import Actions
-        actions_worker = Actions() # 更新实例
-        
+
+        actions_worker = Actions()  # 更新实例
+
         speaker.speak("核心逻辑与配置已成功重载")
         return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"status": "error", "msg": str(e)}), 500
 
-@app.route('/command', methods=['POST'])
+
+@app.route("/command", methods=["POST"])
 def handle_command():
     data = request.json
     text = data.get("text", "")
-    if not text: return jsonify({"status": "error"}), 400
-    
+    if not text:
+        return jsonify({"status": "error"}), 400
+
     # 动态查找指令，如果指令是截图这种需要返回文件的，同步处理
     for cmd_id, info in config.COMMANDS.items():
-        if any(kw == text for kw in info.get('post_params', [])):
-            if info.get('action') == 'take_screenshot':
-                speaker.speak(info.get('reply', '截图'))
+        if any(kw == text for kw in info.get("post_params", [])):
+            if info.get("action") == "take_screenshot":
+                speaker.speak(info.get("reply", "截图"))
                 img_path = actions_worker.take_screenshot()
                 if img_path and os.path.exists(img_path):
                     filename = os.path.basename(img_path)
-                    response = send_file(img_path, as_attachment=True, download_name=filename)
-                    response.headers['X-File-Name'] = filename
+                    response = send_file(
+                        img_path, as_attachment=True, download_name=filename
+                    )
+                    response.headers["X-File-Name"] = filename
                     return response
                 else:
                     return jsonify({"status": "error", "msg": "Screenshot failed"}), 500
-            
-            if info.get('action') == 'get_clipboard':
-                speaker.speak(info.get('reply', '获取内容'))
-                res = actions_worker.get_clipboard()
-                if res and res.get('path') and os.path.exists(res['path']):
-                    filename = os.path.basename(res['path'])
-                    # 关键：手动构造响应并暴露文件名 Header
-                    response = send_file(res['path'], as_attachment=True, download_name=filename)
-                    response.headers['X-File-Name'] = filename.encode('utf-8').decode('latin-1') # 处理中文名
+
+            if info.get("action") == "take_photo":
+                speaker.speak(info.get("reply", "拍照"))
+                photo_path = actions_worker.take_photo()
+                if photo_path and os.path.exists(photo_path):
+                    filename = os.path.basename(photo_path)
+                    response = send_file(
+                        photo_path, as_attachment=True, download_name=filename
+                    )
+                    response.headers["X-File-Name"] = filename
                     return response
                 else:
-                    return jsonify({"status": "error", "msg": "Clipboard is empty or inaccessible"}), 404
+                    return jsonify({"status": "error", "msg": "Camera capture failed"}), 500
+
+            if info.get("action") == "get_clipboard":
+                speaker.speak(info.get("reply", "获取内容"))
+                res = actions_worker.get_clipboard()
+                if res and res.get("path") and os.path.exists(res["path"]):
+                    filename = os.path.basename(res["path"])
+                    # 关键：手动构造响应并暴露文件名 Header
+                    response = send_file(
+                        res["path"], as_attachment=True, download_name=filename
+                    )
+                    response.headers["X-File-Name"] = filename.encode("utf-8").decode(
+                        "latin-1"
+                    )  # 处理中文名
+                    return response
+                else:
+                    return (
+                        jsonify(
+                            {
+                                "status": "error",
+                                "msg": "Clipboard is empty or inaccessible",
+                            }
+                        ),
+                        404,
+                    )
 
     # 其余指令：异步执行
     threading.Thread(target=execution_task, args=(text,)).start()
     return jsonify({"status": "success"})
+
 
 def execution_task(text):
     # 配置切换逻辑
@@ -198,15 +255,18 @@ def execution_task(text):
 
     # 指令匹配
     for cmd_id, info in config.COMMANDS.items():
-        if any(kw == text for kw in info['post_params']):
+        if any(kw == text for kw in info["post_params"]):
             # 先说话再执行
-            speaker.speak(info['reply'])
-            
-            func = getattr(actions_worker, info['action'], None)
+            speaker.speak(info["reply"])
+
+            func = getattr(actions_worker, info["action"], None)
             if func:
-                try: func(*info['params'])
-                except Exception as e: print(f"Action Exec Error: {e}")
+                try:
+                    func(*info["params"])
+                except Exception as e:
+                    print(f"Action Exec Error: {e}")
             return
 
+
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=config.API_PORT)
+    app.run(host="0.0.0.0", port=config.API_PORT)

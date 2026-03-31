@@ -174,6 +174,13 @@ COMMANDS = {
         "params": [],
         "reply": "远程剪切板",
     },
+    "camera": {
+        "label": "📷 远程拍照",
+        "post_params": ["拍照"],
+        "action": "take_photo",
+        "params": [],
+        "reply": "请微笑",
+    },
     "shutdown": {
         "label": "极速关机",
         "post_params": ["关机", "自毁"],

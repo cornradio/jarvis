@@ -7,6 +7,7 @@ import screen_brightness_control as sbc
 from core.agent_volume import VolumeManager
 from core import screenshot_tool
 from core import clipboard_tool
+from core import cam_pygame as camera_tool
 
 
 class Actions:
@@ -79,3 +80,7 @@ class Actions:
     def get_clipboard(self):
         # 调用剪切板工具并返回结果字典
         return clipboard_tool.get_clipboard_data()
+        
+    def take_photo(self):
+        # 拍照并返回保存路径
+        return camera_tool.take_camera_photo()
