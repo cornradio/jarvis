@@ -14,7 +14,7 @@ from flask import Flask, request, jsonify, render_template_string, send_file
 from flask_cors import CORS
 from actions import Actions
 import config
-from web_ui import DASHBOARD_HTML
+from core.web_ui import DASHBOARD_HTML
 import pystray
 from PIL import Image, ImageDraw
 
@@ -60,7 +60,7 @@ def setup_tray():
 # 启动托盘线程
 threading.Thread(target=setup_tray, daemon=True).start()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='core/static')
 CORS(app)
 actions_worker = Actions()
 

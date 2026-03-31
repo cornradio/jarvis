@@ -4,9 +4,9 @@ import ctypes
 import pyautogui
 import webbrowser
 import screen_brightness_control as sbc
-from agent_volume import VolumeManager
-import screenshot_tool
-import clipboard_tool
+from core.agent_volume import VolumeManager
+from core import screenshot_tool
+from core import clipboard_tool
 
 
 class Actions:
