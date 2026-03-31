@@ -10,7 +10,7 @@ import pygame
 import pyttsx3
 import pythoncom
 import importlib # 用于热重载
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, send_file
 from flask_cors import CORS
 from actions import Actions
 import config
@@ -154,7 +154,18 @@ def handle_command():
     text = data.get("text", "")
     if not text: return jsonify({"status": "error"}), 400
     
-    # 异步执行动作和语音
+    # 动态查找指令，如果指令是截图这种需要返回文件的，同步处理
+    for cmd_id, info in config.COMMANDS.items():
+        if any(kw == text for kw in info.get('post_params', [])):
+            if info.get('action') == 'take_screenshot':
+                speaker.speak(info.get('reply', '截图'))
+                img_path = actions_worker.take_screenshot()
+                if img_path and os.path.exists(img_path):
+                    return send_file(img_path, mimetype='image/png')
+                else:
+                    return jsonify({"status": "error", "msg": "Screenshot failed"}), 500
+
+    # 其余指令：异步执行
     threading.Thread(target=execution_task, args=(text,)).start()
     return jsonify({"status": "success"})
 

@@ -84,7 +84,21 @@ DASHBOARD_HTML = """
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify({ text: t }) 
-            }).then(() => {
+            }).then(response => {
+                // 如果是截图指令，处理返回的文件流
+                if (t === '截图') {
+                    return response.blob().then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = `JARVIS_SCREENSHOT_${new Date().getTime()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        a.remove();
+                    });
+                }
                 if (t.includes('切换')) {
                     setTimeout(() => location.reload(), 300);
                 }

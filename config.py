@@ -101,6 +101,13 @@ COMMANDS = {
         "params": ["calc"],
         "reply": "打开计算器",
     },
+    "Flydigi": {
+        "label": "手柄驱动",
+        "post_params": ["手柄驱动"],
+        "action": "launch_tool",
+        "params": ["C:\Program Files\Flydigi Space Station\Flydigi Space Station.exe"],
+        "reply": "打开Flydigi手柄驱动",
+    },
     "chrome": {
         "label": "Chrome",
         "post_params": ["chrome"],
@@ -152,6 +159,13 @@ COMMANDS = {
         "action": "lock_screen",
         "params": [],
         "reply": "再见",
+    },
+    "screenshot": {
+        "label": "📸 屏幕截图",
+        "post_params": ["截图"],
+        "action": "take_screenshot",
+        "params": [],
+        "reply": "咔嚓",
     },
     "shutdown": {
         "label": "极速关机",
