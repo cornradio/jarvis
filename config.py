@@ -167,6 +167,13 @@ COMMANDS = {
         "params": [],
         "reply": "咔嚓",
     },
+    "clipboard": {
+        "label": "📋 获取剪切板",
+        "post_params": ["剪切板"],
+        "action": "get_clipboard",
+        "params": [],
+        "reply": "远程剪切板",
+    },
     "shutdown": {
         "label": "极速关机",
         "post_params": ["关机", "自毁"],

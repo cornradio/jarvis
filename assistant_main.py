@@ -35,10 +35,11 @@ def setup_tray():
         icon.stop()
         os._exit(0) # 强制关闭所有关联线程并退出
 
-    def on_reload(icon, item):
-        # 模拟点击重载
-        with app.test_client() as c:
-            c.post('/reload')
+    def on_restart(icon, item):
+        # 强制重启程序 (热重载整个实例)
+        icon.stop()
+        # 使用当前解释器重新运行当前脚本
+        os.execl(sys.executable, sys.executable, *sys.argv)
             
     def on_open_web(icon, item):
         # 自动获取本机 IP 或直接访问 localhost
@@ -51,7 +52,7 @@ def setup_tray():
     icon = pystray.Icon("JARVIS", create_image(), menu=pystray.Menu(
         pystray.MenuItem("🖥️ 仪表盘 (Dashboard)", on_open_web),
         pystray.MenuItem("📁 项目文件夹", on_open_folder),
-        pystray.MenuItem("🔄 重载配置", on_reload),
+        pystray.MenuItem("🔥 强制重启 (Force Restart)", on_restart),
         pystray.MenuItem("❌ 退出 JARVIS", on_quit)
     ))
     icon.run()
@@ -161,9 +162,24 @@ def handle_command():
                 speaker.speak(info.get('reply', '截图'))
                 img_path = actions_worker.take_screenshot()
                 if img_path and os.path.exists(img_path):
-                    return send_file(img_path, mimetype='image/png')
+                    filename = os.path.basename(img_path)
+                    response = send_file(img_path, as_attachment=True, download_name=filename)
+                    response.headers['X-File-Name'] = filename
+                    return response
                 else:
                     return jsonify({"status": "error", "msg": "Screenshot failed"}), 500
+            
+            if info.get('action') == 'get_clipboard':
+                speaker.speak(info.get('reply', '获取内容'))
+                res = actions_worker.get_clipboard()
+                if res and res.get('path') and os.path.exists(res['path']):
+                    filename = os.path.basename(res['path'])
+                    # 关键：手动构造响应并暴露文件名 Header
+                    response = send_file(res['path'], as_attachment=True, download_name=filename)
+                    response.headers['X-File-Name'] = filename.encode('utf-8').decode('latin-1') # 处理中文名
+                    return response
+                else:
+                    return jsonify({"status": "error", "msg": "Clipboard is empty or inaccessible"}), 404
 
     # 其余指令：异步执行
     threading.Thread(target=execution_task, args=(text,)).start()

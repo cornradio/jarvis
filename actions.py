@@ -6,6 +6,7 @@ import webbrowser
 import screen_brightness_control as sbc
 from agent_volume import VolumeManager
 import screenshot_tool
+import clipboard_tool
 
 
 class Actions:
@@ -74,3 +75,7 @@ class Actions:
     def take_screenshot(self):
         # 此方法调用截图工具并返回文件路径
         return screenshot_tool.take_silent_screenshot()
+
+    def get_clipboard(self):
+        # 调用剪切板工具并返回结果字典
+        return clipboard_tool.get_clipboard_data()
