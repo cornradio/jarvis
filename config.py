@@ -1,7 +1,7 @@
 # --- 贾维斯 (JARVIS) 核心指令注册表 ---
 
 # --- 【系统配置】 ---
-API_PORT = 5000
+API_PORT = 5090
 
 # --- 【语音反馈配置】 ---
 VOICE_ENABLED = True
@@ -107,6 +107,15 @@ COMMANDS = {
         "action": "launch_tool",
         "params": ["C:\Program Files\Flydigi Space Station\Flydigi Space Station.exe"],
         "reply": "打开Flydigi手柄驱动",
+    },
+    "start_up": {
+        "label": "开机启动文件夹",
+        "post_params": ["开机启动文件夹"],
+        "action": "launch_tool",
+        "params": [
+            r"C:\Users\kasus\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+        ],
+        "reply": "打开开机启动文件夹",
     },
     "chrome": {
         "label": "Chrome",

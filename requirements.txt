@@ -10,3 +10,5 @@ comtypes
 pycaw
 pystray
 Pillow
+numpy
+windows-capture
