@@ -21,7 +21,10 @@
 4. **命名指令**: 比如叫“锁定电脑”。
 5. **语音控制**: 对着 iPhone 喊：**“嘿 Siri，锁定电脑”**，你的 PC 就会瞬间响应并回复真人语音。
 
-![1774755492979](image/README/1774755492979.jpg) 
+<img width="300"  alt="PixPin_2026-04-01_15-12-41" src="image/README/1774755492979.jpg" />
+
+<img width="1000" alt="PixPin_2026-04-01_15-12-41" src="https://github.com/user-attachments/assets/f28a73b3-a341-45f8-83ae-43bcd1383872" />
+
 ---
 
 ## 🎨 系统仪表盘 (网页版)
