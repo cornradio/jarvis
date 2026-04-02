@@ -35,6 +35,13 @@ COMMANDS = {
         "params": [],
         "reply": "引擎已切换",
     },
+    "open_ow": {
+        "label": "🎮 开启守望",
+        "post_params": ["开启守望", "OW"],
+        "action": "run_cmd",  # 使用通用命令执行工具
+        "params": [r'"C:\Program Files (x86)\Battle.net\Battle.net Launcher.exe"'],
+        "reply": "正在为您开启守望先锋，祝您游戏愉快",
+    },
     # 2. 安全与防御协议
     "wipe_data": {
         "label": "毁灭证据",

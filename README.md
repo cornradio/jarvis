@@ -76,6 +76,48 @@ python assistant_main.py
    ```
 3. **取消自启**: 按下 `Win + R` 键，输入 `shell:startup`，删掉里面的 `JARVIS_AutoStart.vbs` 即可。
 
+## 🛠️ 开发者指南：如何添加新功能？
+
+得益于 **模块化架构**，你可以非常轻松地为 JARVIS 增加新的超能力。
+
+### 案例：添加一个“开启守望先锋”按钮
+
+如果你想通过网页或 Siri 开启游戏，命令为：`"D:\baoxuegame\Overwatch\Overwatch Launcher.exe" --productcode=pro`
+
+#### 第一步：在 `config.py` 中注册指令
+打开 `config.py`，在 `COMMANDS` 字典中添加一项：
+
+```python
+    "open_ow": {
+        "label": "🎮 开启守望",
+        "post_params": ["开启守望", "OW"],
+        "action": "run_cmd",  # 使用通用命令执行工具
+        "params": [r'"D:\baoxuegame\Overwatch\Overwatch Launcher.exe" --productcode=pro'],
+        "reply": "正在为您开启守望先锋，祝您游戏愉快",
+    },
+```
+
+#### 第二步：(进阶) 编写自定义逻辑
+如果你需要更复杂的逻辑（比如不仅要开游戏，还要自动调整音量），你可以：
+1.  在 `actions/` 文件夹下新建一个 `my_game_mode.py`。
+2.  编写代码：
+    ```python
+    import os
+    vm = None
+    def set_vm(v): global vm; vm = v
+
+    def run():
+        # 1. 调大音量
+        if vm: vm.set_volume(80) 
+        # 2. 启动游戏
+        os.system(r'start "" "D:\baoxuegame\Overwatch\Overwatch Launcher.exe" --productcode=pro')
+        return True
+    ```
+3.  在 `config.py` 中将 `action` 改为 `my_game_mode` 即可！
+
+#### 第三步：应用生效
+修改完成后，只需在 **网页仪表盘** 点击顶部的 **🔄 重载配置**，新功能立即上线，无需重启程序！
+
 ---
 
 *Jarvis v7.6 - Designed for absolute control.*
