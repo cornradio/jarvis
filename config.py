@@ -42,6 +42,13 @@ COMMANDS = {
         "params": [r'"C:\Program Files (x86)\Battle.net\Battle.net Launcher.exe"'],
         "reply": "正在为您开启守望先锋，祝您游戏愉快",
     },
+    "open_steam": {
+        "label": "🎮 开启蒸汽平台",
+        "post_params": ["蒸汽平台", "steam"],
+        "action": "run_cmd",  # 使用通用命令执行工具
+        "params": [r'"C:\Program Files (x86)\Steam\steam.exe"'],
+        "reply": "正在为您开启steam，祝您游戏愉快",
+    },
     # 2. 安全与防御协议
     "wipe_data": {
         "label": "毁灭证据",
