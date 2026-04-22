@@ -269,4 +269,12 @@ def execution_task(text):
 
 
 if __name__ == "__main__":
+    import socket
+    def is_port_available(port):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(('localhost', port)) != 0
+
+    if not is_port_available(config.API_PORT):
+        print(f"CRITICAL: Port {config.API_PORT} is blocked by Windows or another app!")
+    # 端口检查与清理
     app.run(host="0.0.0.0", port=config.API_PORT)

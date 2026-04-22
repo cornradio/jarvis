@@ -1,7 +1,7 @@
 # --- 贾维斯 (JARVIS) 核心指令注册表 ---
 
 # --- 【系统配置】 ---
-API_PORT = 5090
+API_PORT = 20026
 
 # --- 【语音反馈配置】 ---
 VOICE_ENABLED = True
@@ -74,7 +74,7 @@ COMMANDS = {
     },
     "vol_50": {
         "label": "音量 50%",
-        "post_params": ["音量五十", "50"],
+        "post_params": ["音量一半", "50"],
         "action": "set_vol",
         "params": [50],
         "reply": "音量五十",
