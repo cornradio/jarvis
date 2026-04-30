@@ -14,7 +14,7 @@ from flask import Flask, request, jsonify, render_template_string, send_file
 from flask_cors import CORS
 from actions import Actions
 import config
-from core.web_ui import DASHBOARD_HTML
+from core.web_ui import DASHBOARD_HTML, OLD_DASHBOARD_HTML, SETTINGS_HTML
 import pystray
 from PIL import Image, ImageDraw
 
@@ -147,6 +147,25 @@ def index():
     finally:
         s.close()
     return render_template_string(
+        OLD_DASHBOARD_HTML,
+        commands=config.COMMANDS,
+        port=config.API_PORT,
+        local_ip=ip,
+        voice_on=config.VOICE_ENABLED,
+        engine_name=config.VOICE_ENGINE,
+    )
+
+@app.route("/new")
+def new_index():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+    except:
+        ip = "127.0.0.1"
+    finally:
+        s.close()
+    return render_template_string(
         DASHBOARD_HTML,
         commands=config.COMMANDS,
         port=config.API_PORT,
@@ -154,6 +173,76 @@ def index():
         voice_on=config.VOICE_ENABLED,
         engine_name=config.VOICE_ENGINE,
     )
+
+@app.route("/old")
+def old_index():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+    except:
+        ip = "127.0.0.1"
+    finally:
+        s.close()
+    return render_template_string(
+        OLD_DASHBOARD_HTML,
+        commands=config.COMMANDS,
+        port=config.API_PORT,
+        local_ip=ip,
+        voice_on=config.VOICE_ENABLED,
+        engine_name=config.VOICE_ENGINE,
+    )
+
+
+@app.route("/settings")
+def settings():
+    return render_template_string(SETTINGS_HTML, config=config, commands=config.COMMANDS)
+
+
+@app.route("/settings/save", methods=["POST"])
+def save_settings():
+    data = request.json
+    try:
+        config.API_PORT = data.get("API_PORT", config.API_PORT)
+        config.VOICE_ENABLED = data.get("VOICE_ENABLED", config.VOICE_ENABLED)
+        config.VOICE_ENGINE = data.get("VOICE_ENGINE", config.VOICE_ENGINE)
+        config.LOCAL_RATE = data.get("LOCAL_RATE", config.LOCAL_RATE)
+        config.EDGE_VOICE = data.get("EDGE_VOICE", config.EDGE_VOICE)
+        config.EDGE_RATE = data.get("EDGE_RATE", config.EDGE_RATE)
+        new_commands = data.get("commands", {})
+        if new_commands:
+            config.COMMANDS = new_commands
+        import ast
+        config_content = """# --- 贾维斯 (JARVIS) 核心指令注册表 ---
+
+# --- 【系统配置】 ---
+API_PORT = {API_PORT}
+
+# --- 【语音反馈配置】 ---
+VOICE_ENABLED = {VOICE_ENABLED}
+VOICE_ENGINE = "{VOICE_ENGINE}"
+LOCAL_RATE = {LOCAL_RATE}
+EDGE_VOICE = "{EDGE_VOICE}"
+EDGE_RATE = "{EDGE_RATE}"
+
+# --- 【指令注册表】 ---
+# label: 网页名 | post_params: 接口参数 | action: 函数名 | params: 参数列表 | reply: 回复 | emoji: 图标emoji | icon: 自定义图标URL
+COMMANDS = {COMMANDS}
+""".format(
+            API_PORT=config.API_PORT,
+            VOICE_ENABLED=config.VOICE_ENABLED,
+            VOICE_ENGINE=config.VOICE_ENGINE,
+            LOCAL_RATE=config.LOCAL_RATE,
+            EDGE_VOICE=config.EDGE_VOICE,
+            EDGE_RATE=config.EDGE_RATE,
+            COMMANDS=ast.literal_eval(repr(config.COMMANDS))
+        )
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.py")
+        with open(config_path, "w", encoding="utf-8") as f:
+            f.write(config_content)
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "msg": str(e)}), 500
 
 
 # --- 新增：热重载接口 ---
