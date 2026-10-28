@@ -85,7 +85,7 @@ COMMANDS = {
         "post_params": ["暂停", "播放"],
         "action": "toggle_play_pause",
         "params": [],
-        "reply": "OK",
+        "reply": "播放/暂停",
         "emoji": "▶️",
         "icon": None,
     },

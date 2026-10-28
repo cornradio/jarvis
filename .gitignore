@@ -1,3 +1,4 @@
 temp/
 __pycache__/
 core/__pycache__/
+__pycache__/config.cpython-310.pyc
